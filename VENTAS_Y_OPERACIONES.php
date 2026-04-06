@@ -164,10 +164,11 @@ while($rowsube=mysqli_fetch_array($listadosube)){
 	$NUMERO_CONSECUTIVO_PROVEE = '';	
 	$FECHA_DE_PAGO = '';
 	
-	$regreso = $pagoproveedores->variable_SUBETUFACTURA();
-	$url = __ROOT1__.'/includes/archivos/'.$regreso['ADJUNTAR_FACTURA_XML'];
+$regreso = $pagoproveedores->variable_SUBETUFACTURA();
+	$xmlTemporal = isset($regreso['ADJUNTAR_FACTURA_XML']) ? trim((string)$regreso['ADJUNTAR_FACTURA_XML']) : '';
+	$url = __ROOT1__.'/includes/archivos/'.$xmlTemporal;
 	
-if( file_exists($url) ){
+if($xmlTemporal !== '' && is_file($url)){
 	$regreso = $conexion2->lectorxml($url);
 	
 	$Version = $regreso['Version'];

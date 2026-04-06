@@ -296,21 +296,21 @@ public function variable_SUBETUFACTURA() {
     
     // Verificar que el documento temporal pertenece al usuario activo
     $idem = intval($_SESSION['idem']);
-    $query = mysqli_query($conn, 
+   $query = mysqli_query($conn, 
         "SELECT * FROM 02SUBETUFACTURADOCTOS 
          WHERE idRelacion = '" . $_SESSION['idPROV'] . "' 
          AND idRelacionU = '{$idem}'   -- <-- agregar esta validación
          AND idTemporal = 'si' 
-         AND (ADJUNTAR_FACTURA_XML IS NOT NULL OR ADJUNTAR_FACTURA_XML <> '') 
          ORDER BY id DESC"
     );
     return mysqli_fetch_array($query, MYSQLI_ASSOC);
 }
 
+
     public function variable_SUBETUFACTURA2($id12) {
         $conn  = $this->db();
         $id12  = mysqli_real_escape_string($conn, $id12);
-        $query = mysqli_query($conn, "SELECT * FROM 02SUBETUFACTURADOCTOS WHERE idRelacion = '{$id12}' AND idTemporal = 'si' AND (ADJUNTAR_FACTURA_XML IS NOT NULL OR ADJUNTAR_FACTURA_XML <> '') ORDER BY id DESC");
+        $query = mysqli_query($conn, "SELECT * FROM 02SUBETUFACTURADOCTOS WHERE idRelacion = '{$id12}' AND idTemporal = 'si' ORDER BY id DESC");
         return mysqli_fetch_array($query, MYSQLI_ASSOC);
     }
 
@@ -690,11 +690,11 @@ public function variable_SUBETUFACTURA() {
 
             $this->registrar_bitacora($conn, $ultimo_id, 'INGRESO', 'Registro ingresado desde el módulo REEMBOLSOS.', $usuarioBitacora, '');
 
-            // ── Parsear XML una sola vez y reutilizar los datos ───────────
-            $regresourl = $this->variable_SUBETUFACTURA2($_SESSION['idPROV']);
-            $urlXml     = __ROOT3__ . '/includes/archivos/' . $regresourl['ADJUNTAR_FACTURA_XML'];
+              $regresourl = $this->variable_SUBETUFACTURA2($_SESSION['idPROV']);
+            $xmlTemporal = isset($regresourl['ADJUNTAR_FACTURA_XML']) ? trim((string)$regresourl['ADJUNTAR_FACTURA_XML']) : '';
+            $urlXml     = __ROOT3__ . '/includes/archivos/' . $xmlTemporal;
             $datosXml   = null;
-            if (file_exists($urlXml)) {
+            if ($xmlTemporal !== '' && is_file($urlXml)) {
                 $conexion2 = new herramientas();
                 $datosXml  = $conexion2->lectorxml($urlXml);
             }
