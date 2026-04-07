@@ -292,17 +292,26 @@ class accesoclase extends colaboradores {
 
 public function variable_SUBETUFACTURA() {
     $conn = $this->db();
-    if (empty($_SESSION['idPROV'])) return [];
-    
-    // Verificar que el documento temporal pertenece al usuario activo
-    $idem = intval($_SESSION['idem']);
-   $query = mysqli_query($conn, 
-        "SELECT * FROM 02SUBETUFACTURADOCTOS 
-         WHERE idRelacion = '" . $_SESSION['idPROV'] . "' 
-         AND idRelacionU = '{$idem}'   -- <-- agregar esta validación
-         AND idTemporal = 'si' 
-         ORDER BY id DESC"
-    );
+    $idem = isset($_SESSION['idem']) ? intval($_SESSION['idem']) : 0;
+    $idProv = isset($_SESSION['idPROV']) ? intval($_SESSION['idPROV']) : 0;
+
+    if ($idProv > 0) {
+        $query = mysqli_query($conn,
+            "SELECT * FROM 02SUBETUFACTURADOCTOS
+             WHERE idRelacion = '{$idProv}'
+             AND idRelacionU = '{$idem}'
+             AND idTemporal = 'si'
+             ORDER BY id DESC"
+        );
+    } else {
+        // Fallback para cargas sin XML: tomar el último temporal del usuario actual
+        $query = mysqli_query($conn,
+            "SELECT * FROM 02SUBETUFACTURADOCTOS
+             WHERE idRelacionU = '{$idem}'
+             AND idTemporal = 'si'
+             ORDER BY id DESC"
+        );
+    }
     return mysqli_fetch_array($query, MYSQLI_ASSOC);
 }
 
@@ -644,6 +653,41 @@ public function variable_SUBETUFACTURA() {
 
             mysqli_query($conn, $var1) or die('P156' . mysqli_error($conn));
 
+// ── Re-procesar XML si se subió uno nuevo durante la edición ──────────────
+$doctoActual = mysqli_query($conn,
+    "SELECT ADJUNTAR_FACTURA_XML FROM 02SUBETUFACTURADOCTOS 
+     WHERE idTemporal = '{$IPpagoprovee}' 
+     AND ADJUNTAR_FACTURA_XML <> '' 
+     ORDER BY id DESC LIMIT 1"
+);
+if ($doctoActual) {
+    $rowDocto = mysqli_fetch_assoc($doctoActual);
+    if (!empty($rowDocto['ADJUNTAR_FACTURA_XML'])) {
+        $urlXmlEdicion = __ROOT3__ . '/includes/archivos/' . $rowDocto['ADJUNTAR_FACTURA_XML'];
+        if (file_exists($urlXmlEdicion)) {
+            $conexion2edicion = new herramientas();
+            $datosXmlEdicion  = $conexion2edicion->lectorxml($urlXmlEdicion);
+            if (!empty($datosXmlEdicion['UUID'])) {
+                // Solo actualiza si el UUID no está ya registrado para OTRO registro
+                $uuidCheck = mysqli_query($conn,
+                    "SELECT ultimo_id FROM 02XML 
+                     WHERE UUID = '" . mysqli_real_escape_string($conn, $datosXmlEdicion['UUID']) . "' 
+                     AND ultimo_id <> '{$IPpagoprovee}' LIMIT 1"
+                );
+                if (!mysqli_fetch_assoc($uuidCheck)) {
+                    $this->guardarxmlDB2(
+                        $IPpagoprovee,
+                        $session,
+                        '02XML',
+                        $urlXmlEdicion,
+                        $datosXmlEdicion
+                    );
+                }
+            }
+        }
+    }
+}
+
             $mapaComparacion = [
                 'STATUS_DE_PAGO' => $STATUS_DE_PAGO, 'MONTO_DEPOSITAR' => $MONTO_DEPOSITAR,
                 'FECHA_DE_PAGO' => $FECHA_DE_PAGO, 'FECHA_A_DEPOSITAR' => $FECHA_A_DEPOSITAR,
@@ -887,11 +931,19 @@ public function variable_SUBETUFACTURA() {
         return mysqli_query($conn, "SELECT * FROM 02SUBETUFACTURADOCTOS WHERE idTemporal='{$ID}' ORDER BY id DESC");
     }
 
-    public function Listado_subefacturadocto($ADJUNTAR_COTIZACION) {
+   public function Listado_subefacturadocto($ADJUNTAR_COTIZACION) {
         $conn = $this->db();
+        $idem = isset($_SESSION['idem']) ? intval($_SESSION['idem']) : 0;
+        $idProv = isset($_SESSION['idPROV']) ? intval($_SESSION['idPROV']) : 0;
+
+        $whereRelacion = ($idProv > 0)
+            ? "(idRelacion='{$idProv}' OR idRelacionU='{$idem}')"
+            : "idRelacionU='{$idem}'";
+
         return mysqli_query($conn, "SELECT id,{$ADJUNTAR_COTIZACION},fechaingreso FROM 02SUBETUFACTURADOCTOS
-            WHERE idRelacion='" . $_SESSION['idPROV'] . "' AND idTemporal='si'
-            AND ({$ADJUNTAR_COTIZACION} IS NOT NULL OR {$ADJUNTAR_COTIZACION}<>'') ORDER BY id DESC");
+            WHERE {$whereRelacion} AND idTemporal='si'
+            AND {$ADJUNTAR_COTIZACION} IS NOT NULL AND {$ADJUNTAR_COTIZACION}<>''
+            ORDER BY id DESC");
     }
 
     public function delete_subefacturadocto2($id) {
