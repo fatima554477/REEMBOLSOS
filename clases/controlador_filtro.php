@@ -145,7 +145,8 @@ if($_POST['NUMERO_CONSECUTIVO_PROVEE']==true){
 	$NUMERO_CONSECUTIVO_PROVEE = $_POST['NUMERO_CONSECUTIVO_PROVEE'];	
 }
 
-$per_page=intval($_POST["per_page"]);
+$per_page = (isset($_POST["per_page"]) && intval($_POST["per_page"]) > 0) ? intval($_POST["per_page"]) : 10;
+
 	$campos="*";
 	//Variables de paginación
 	$page = (isset($_POST["page"]) && !empty($_POST["page"]))?$_POST["page"]:1;
@@ -1017,6 +1018,37 @@ $propina12ig = $propina12i - $propina12g;
 <?php
 $finales = 0;
 $totales = 'no';
+if (!function_exists('normalizarMontoFiltroVentas')) {
+
+    function normalizarMontoFiltroVentas($valor) {
+
+        if (!isset($valor)) {
+
+            return 0;
+
+        }
+
+
+
+        $valor = trim((string) $valor);
+
+        if ($valor === '') {
+
+            return 0;
+
+        }
+
+
+
+        $valor = str_replace(array('$', ' ', ','), '', $valor);
+
+
+
+        return is_numeric($valor) ? floatval($valor) : 0;
+
+    }
+
+}
 
 foreach ($datos as $key => $row) {
     $colspan = 0;
@@ -1030,9 +1062,16 @@ foreach ($datos as $key => $row) {
     $tienePermisoVenta     = $numeroEventoRegistro !== '' && isset($eventosAutorizadosVentas[$numeroEventoRegistro]);
     $esReembolso           = isset($row["VIATICOSOPRO"]) && strtoupper(trim($row["VIATICOSOPRO"])) === 'REEMBOLSO';
 
-    $total123fila              = isset($row['totalf'])          ? floatval($row['totalf'])          : 0;
-    $MONTO_DEPOSITAR123fila    = isset($row['MONTO_DEPOSITAR']) ? floatval($row['MONTO_DEPOSITAR']) : 0;
-    $supropinamashospedajeFila = floatval($row['MONTO_PROPINA'] ?? 0) + floatval($row['IMPUESTO_HOSPEDAJE'] ?? 0);
+   $total123fila              = normalizarMontoFiltroVentas(isset($row['totalf']) ? $row['totalf'] : 0);
+
+    $MONTO_DEPOSITAR123fila    = normalizarMontoFiltroVentas(isset($row['MONTO_DEPOSITAR']) ? $row['MONTO_DEPOSITAR'] : 0);
+
+    $montoPropinaFila          = normalizarMontoFiltroVentas(isset($row['MONTO_PROPINA']) ? $row['MONTO_PROPINA'] : 0);
+
+    $impuestoHospedajeFila     = normalizarMontoFiltroVentas(isset($row['IMPUESTO_HOSPEDAJE']) ? $row['IMPUESTO_HOSPEDAJE'] : 0);
+
+    $supropinamashospedajeFila = $montoPropinaFila + $impuestoHospedajeFila;
+
     $totalFilaVentas           = ($total123fila > 0)
                                     ? $total123fila + $supropinamashospedajeFila
                                     : $MONTO_DEPOSITAR123fila;
