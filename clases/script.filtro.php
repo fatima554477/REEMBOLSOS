@@ -849,7 +849,7 @@ $("#FECHA_A_DEPOSITAR_1").val("");
         $(function() {
                 const triggerSearch = () => load(1);
 
-                $('#target3').on('keydown', 'thead input, thead select', function(event) {
+                $('#target2').on('keydown', 'thead input, thead select', function(event) {
                         if (event.key === 'Enter' || event.which === 13) {
                                 event.preventDefault();
                                 triggerSearch();

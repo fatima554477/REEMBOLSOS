@@ -715,18 +715,6 @@ echo $FECHA_DE_LLENADO; ?>"></td>
 <?php } ?>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 <?php /*INICIA copiar y PEGAR XML*/ ?>
 <?php  
 if($database->plantilla_filtro($nombreTabla,"NOMBRE_RECEPTOR",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
@@ -778,9 +766,6 @@ if($database->plantilla_filtro($nombreTabla,"DESCRIPCION ",$altaeventos,$DEPARTA
 echo $DescripcionConcepto ; ?>"></td>
 <?php } ?>
 
-
-
-
 <?php  
 if($database->plantilla_filtro($nombreTabla,"MonedaF",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="background:#f9f3a1;text-align:center"><input type="text" class="form-control" id="Moneda" value="<?php
@@ -821,18 +806,11 @@ if($database->plantilla_filtro($nombreTabla,"VERSION",$altaeventos,$DEPARTAMENTO
 echo $Version; ?>"></td>
 <?php } ?>
 
-
-
-
-
 <?php  
 if($database->plantilla_filtro($nombreTabla,"FECHA_TIMBRADO",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="background:#f9f3a1;text-align:center"><input type="text" class="form-control" id="fechaTimbrado" value="<?php
 echo $fechaTimbrado; ?>"></td>
 <?php } ?>
-
-
-
 
 <?php  
 if($database->plantilla_filtro($nombreTabla,"SUBTOTAL",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
@@ -880,12 +858,6 @@ if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=
 <td style="background:#f9f3a1;text-align:center"><input type="text" class="form-control" id="totalf" value="<?php echo $totalf; ?>"></td>
 <?php } ?>
 
-
-
-
-
-
-
 <td style="background:#f16c4f;text-align:center"><input type="text" class="form-control" id="PorfaltaDeFactura" value="<?php echo $PorfaltaDeFactura; ?>"></td>
 
 <?php if($database->variablespermisos('','viaticosquitar','ver')=='si'){ ?>
@@ -896,7 +868,6 @@ if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=
 
 
 <?php 
-
 		foreach ($datos as $key=>$row){
 			/*el ID_RELACIONADO me regresa quien es papá e hijo*/
 			if($row['ID_RELACIONADO']==''){
@@ -1017,14 +988,9 @@ if (
     $totalf12gg += $totalf12g;
 }
 
+$PorfaltaDeFactura12ig = ($totalf12ii - $totalf12gg);
 
-
-$PorfaltaDeFactura12ig = ($totalf12ii - $totalf12gg) ;
-
-	
-
-	
-$PorfaltaDeFactura12igNEW = ($totalf12ii ) ;
+$PorfaltaDeFactura12igNEW = ($totalf12ii);
 
 $TUA12ig = $TUA12i - $TUA12g;
 $TImpuestosRetenidos12ig = $TImpuestosRetenidos12i - $TImpuestosRetenidos12g;
@@ -1032,9 +998,9 @@ $IEPSXML12ig = $IEPSXML12i - $IEPSXML12g;
 $IVAXMLGTOTAL2ig = $IVAXMLGTOTAL2i - $IVAXMLGTOTAL2g;
 $DESCUENTO12ig = $DESCUENTO12i - $DESCUENTO12g;
 $totalf12if = $totalf12i - $totalf12g;		
-$SUBTOL2ig = $SUBTOL2i - $SUBTOL2g ;
+$SUBTOL2ig = $SUBTOL2i - $SUBTOL2g;
 $propina12ig = $propina12i - $propina12g;
- ?>
+?>
 	
 		<td style="background:#c9e8e8"></td>
 		<td style="background:#c9e8e8"></td>
@@ -1042,7 +1008,7 @@ $propina12ig = $propina12i - $propina12g;
 		<td style="background:#c9e8e8"></td>
             </tr>			
         </thead>
-		<?php 	if ($numrows<0){ ?>
+		<?php if ($numrows<0){ ?>
 		</table>
 		<?php }else{ ?>		
         <tbody>
@@ -1057,9 +1023,25 @@ foreach ($datos as $key => $row) {
     $fondo_existe_xml = "";
     $fondo_existe_xml2 = "";
 
+    // ── Variables VENTAS: calculadas aquí, una vez por fila ──
+    $statusRechazado = isset($row["STATUS_RECHAZADO"]) ? $row["STATUS_RECHAZADO"] : 'no';
+
+    $numeroEventoRegistro  = isset($row["NUMERO_EVENTO"]) ? strtoupper(trim((string)$row["NUMERO_EVENTO"])) : '';
+    $tienePermisoVenta     = $numeroEventoRegistro !== '' && isset($eventosAutorizadosVentas[$numeroEventoRegistro]);
+    $esReembolso           = isset($row["VIATICOSOPRO"]) && strtoupper(trim($row["VIATICOSOPRO"])) === 'REEMBOLSO';
+
+    $total123fila              = isset($row['totalf'])          ? floatval($row['totalf'])          : 0;
+    $MONTO_DEPOSITAR123fila    = isset($row['MONTO_DEPOSITAR']) ? floatval($row['MONTO_DEPOSITAR']) : 0;
+    $supropinamashospedajeFila = floatval($row['MONTO_PROPINA'] ?? 0) + floatval($row['IMPUESTO_HOSPEDAJE'] ?? 0);
+    $totalFilaVentas           = ($total123fila > 0)
+                                    ? $total123fila + $supropinamashospedajeFila
+                                    : $MONTO_DEPOSITAR123fila;
+    $totalEnRangoPermitido     = ($totalFilaVentas >= 0 && $totalFilaVentas <= 0.99);
+    // ── fin variables VENTAS ──
+
     // 1. PRIORIDAD: Si está rechazado → ROJO
     if (isset($row['STATUS_RECHAZADO']) && strtolower(trim($row['STATUS_RECHAZADO'])) == 'si') {
-        $fondo_existe_xml  = "style='background-color:red'"; // rojo suave
+        $fondo_existe_xml  = "style='background-color:red'";
         $fondo_existe_xml2 = "style='background-color:red'";
     }
     // 2. Si NO está rechazado, aplicar lógica existente
@@ -1167,16 +1149,25 @@ while ($rowDOCTOS = mysqli_fetch_array($querycontrasDOCTOS)) {
 ?>
 
 <td style="text-align:center; background:#ceffcc">
-
-<input type="checkbox" style="width:30PX;" checked="checked" disabled = "disabled" class="form-check-input" id="STATUS_RESPONSABLE_EVENTO<?php echo $row["02SUBETUFACTURAid"]; ?>"  name="STATUS_RESPONSABLE_EVENTO<?php echo $row["02SUBETUFACTURAid"]; ?>" value="<?php echo $row["02SUBETUFACTURAid"]; ?>" onclick="STATUS_RESPONSABLE_EVENTO(<?php echo $row["02SUBETUFACTURAid"]; ?>)" <?php if($row["STATUS_RESPONSABLE_EVENTO"]=='si'){
+<input type="checkbox" style="width:30PX;" checked="checked" disabled="disabled" class="form-check-input" id="STATUS_RESPONSABLE_EVENTO<?php echo $row["02SUBETUFACTURAid"]; ?>"  name="STATUS_RESPONSABLE_EVENTO<?php echo $row["02SUBETUFACTURAid"]; ?>" value="<?php echo $row["02SUBETUFACTURAid"]; ?>" onclick="STATUS_RESPONSABLE_EVENTO(<?php echo $row["02SUBETUFACTURAid"]; ?>)" <?php if($row["STATUS_RESPONSABLE_EVENTO"]=='si'){
 	echo "checked";
 }
 $colspan += 1; ?>/>
 </td>
 
 
-<td style="text-align:center; background:<?php echo ($row["STATUS_VENTAS"] == 'si') ? '#ceffcc' : '#e9d8ee'; ?>;" 
-    id="color_VENTAS<?php echo $row["02SUBETUFACTURAid"]; ?>" >
+<!-- ============================================================ -->
+<!-- VENTAS                                                        -->
+<!-- ============================================================ -->
+<td style="text-align:center; background:<?php 
+    if ($row["STATUS_VENTAS"] == 'si') {
+        echo '#ceffcc';
+    } elseif ($esReembolso) {
+        echo '#d6d6d6';
+    } else {
+        echo '#e9d8ee';
+    }
+?>;" id="color_VENTAS<?php echo $row["02SUBETUFACTURAid"]; ?>">
 
     <input type="checkbox"
         style="width:30px;"
@@ -1184,41 +1175,49 @@ $colspan += 1; ?>/>
         id="STATUS_VENTAS<?php echo $row["02SUBETUFACTURAid"]; ?>"
         name="STATUS_VENTAS<?php echo $row["02SUBETUFACTURAid"]; ?>"
         value="<?php echo $row["02SUBETUFACTURAid"]; ?>"
+        data-permiso-principal="<?php echo $tienePermisoVenta ? 'si' : 'no'; ?>"
         onclick="STATUS_VENTAS(<?php echo $row["02SUBETUFACTURAid"]; ?>)"
-       <?php
-$atributosVentas = [];
+        <?php
+        $atributosVentas = [];
 
-// 1) Bloqueo total si ya está en "si"
-if ($row["STATUS_VENTAS"] === 'si') {
-    $atributosVentas[] = 'checked';
-    $atributosVentas[] = 'disabled';
-} else {
-    // 2) Si NO está en "si", aquí decides si se puede marcar o no (permiso)
-    $numeroEventoRegistro = isset($row["NUMERO_EVENTO"]) ? strtoupper(trim((string)$row["NUMERO_EVENTO"])) : '';
-    $tienePermisoVenta = $numeroEventoRegistro !== '' && isset($eventosAutorizadosVentas[$numeroEventoRegistro]);
+        if ($row["STATUS_VENTAS"] === 'si') {
+            // Ya autorizado → siempre bloqueado
+            $atributosVentas[] = 'checked';
+            $atributosVentas[] = 'disabled';
+        } else {
+            if ($esReembolso) {
+                $atributosVentas[] = 'disabled';
+                $atributosVentas[] = 'style="cursor:not-allowed;"';
+                $atributosVentas[] = 'title="No aplica para ventas: tipo REEMBOLSO"';
+            } elseif ($statusRechazado === 'si') {
+                $atributosVentas[] = 'disabled';
+                $atributosVentas[] = 'style="cursor:not-allowed;"';
+                $atributosVentas[] = 'title="No se puede autorizar por ventas: pago rechazado"';
+            } elseif (!$totalEnRangoPermitido) {
+                $atributosVentas[] = 'disabled';
+                $atributosVentas[] = 'style="cursor:not-allowed;"';
+                $atributosVentas[] = 'title="Solo se puede autorizar si el total está entre $0.00 y $0.99"';
+            } elseif (!$tienePermisoVenta) {
+                $atributosVentas[] = 'disabled';
+            }
+        }
 
-    if (!$tienePermisoVenta) {
-        $atributosVentas[] = 'disabled';
-    }
-}
-
-echo implode(' ', $atributosVentas);
-?>
+        echo implode(' ', $atributosVentas);
+        ?>
     />
     <?php $colspan += 1; ?>
-
 </td>
-
+<!-- ============================================================ -->
 
 
 <td style="text-align:center; background:
     <?php
     if ($row["STATUS_DE_PAGO"] == 'APROBADO') {
-        echo '#ceffcc'; // verde claro para aprobado
+        echo '#ceffcc';
     } elseif ($row["STATUS_DE_PAGO"] == 'PAGADO') {
-        echo '#ceffcc'; // verde más intenso para pagado
+        echo '#ceffcc';
     } else {
-        echo '#e9d8ee'; // lila claro para pendiente
+        echo '#e9d8ee';
     }
     ?>" 
     id="color_pagado1a<?php echo $row["02SUBETUFACTURAid"]; ?>">
@@ -1231,13 +1230,11 @@ echo implode(' ', $atributosVentas);
            $permisoVerAUDITORIA1       = $database->variablespermisos('', 'AUDITORIA1', 'ver') == 'si';
            $permisoModificarAUDITORIA1 = $database->variablespermisos('', 'AUDITORIA1', 'modificar') == 'si';
 
-           // Condición de estatus
            if ($row["STATUS_DE_PAGO"] == 'APROBADO' || $row["STATUS_DE_PAGO"] == 'PAGADO') {
                echo $permisoModificarAUDITORIA1
                    ? 'checked onclick="STATUS_AUDITORIA1('.$row["02SUBETUFACTURAid"].')"'
                    : 'checked disabled';
            } else {
-               // Validación de permisoS
                if ($permisoVerAUDITORIA1) {
                    echo 'onclick="STATUS_AUDITORIA1('.$row["02SUBETUFACTURAid"].')"';
                } else {
@@ -1249,9 +1246,7 @@ echo implode(' ', $atributosVentas);
 </td>
 
 
-
 <td style="text-align:center; background:
-
     <?php echo ($row["STATUS_FINANZAS"] == 'si') ? '#ceffcc' : '#e9d8ee'; ?>;" 
     id="color_FINANZAS<?php echo $row["02SUBETUFACTURAid"]; ?>">
 
@@ -1266,16 +1261,13 @@ echo implode(' ', $atributosVentas);
         $permisoModificarFINANZAS = $database->variablespermisos('', 'DIRECCION1', 'modificar') == 'si';
 
         if ($row["STATUS_FINANZAS"] == 'si') {
-            // Ya autorizado → marcado y bloqueado salvo que exista permiso de modificación
             echo $permisoModificarFINANZAS
                 ? 'checked onclick="STATUS_FINANZAS('.$row["02SUBETUFACTURAid"].')"'
                 : 'checked disabled style="cursor:not-allowed;" title="Sin permiso para modificar"';
         } else {
-            // Validar permiso antes de habilitar
             if($permisoVerFINANZAS){
                 echo 'onclick="STATUS_FINANZAS('.$row["02SUBETUFACTURAid"].')"';
             } else {
-                // Sin permiso → deshabilitado y con aviso
                 echo 'disabled style="cursor:not-allowed;" title="Sin permiso para modificar"';
             }
         }
@@ -1307,16 +1299,13 @@ echo implode(' ', $atributosVentas);
                 if($permisoVerFINANZAS){
                     echo 'onclick="pasarpagado2('.$row["02SUBETUFACTURAid"].')"';
                 } else {
-                    // Sin permiso → bloqueado y con aviso
                     echo 'disabled style="cursor:not-allowed;" title="Sin permiso para modificar"';
                 }
             }
         ?>
     />
     <?php $colspan += 1; ?>
-
 </td>
-
 
 
 <td style="text-align:center; background:
@@ -1334,66 +1323,45 @@ echo implode(' ', $atributosVentas);
         $permisoModificarAUDITORIA2 = $database->variablespermisos('', 'AUDITORIA2', 'modificar') == 'si';
 
         if ($row["STATUS_AUDITORIA2"] == 'si') {
-            // Ya autorizado → marcado y bloqueado salvo permiso de modificación
             echo $permisoModificarAUDITORIA2
                 ? 'checked onclick="STATUS_AUDITORIA2('.$row["02SUBETUFACTURAid"].')"'
                 : 'checked disabled style="cursor:not-allowed;" title="Ya autorizado"';
         } else {
             if($permisoVerAUDITORIA2){
-                // Permitir acción → al marcar se llama a tu función y se bloquea el checkbox
                 echo 'onclick="STATUS_AUDITORIA2('.$row["02SUBETUFACTURAid"].'); this.disabled=true; this.style.cursor=\'not-allowed\';"';
             } else {
-                // Sin permiso → bloqueado
                 echo 'disabled style="cursor:not-allowed;" title="Sin permiso para modificar"';
             }
         }
         ?>
     />
     <?php $colspan += 1; ?>
-
 </td>
 
 <?php if ($database->variablespermisos('', 'rechazo_pagoviatico', 'ver') == 'si') { ?>
 
 <td style="text-align:center; background:
-
     <?php $statusRechazado = isset($row["STATUS_RECHAZADO"]) ? $row["STATUS_RECHAZADO"] : 'no'; echo ($statusRechazado == 'si') ? '#ceffcc' : '#e9d8ee'; ?>;"
-
     id="color_RECHAZADO<?php echo $row["02SUBETUFACTURAid"]; ?>">
 
-
-
     <?php
-
          $motivoRechazo = $database->obtener_motivo_rechazo($row["02SUBETUFACTURAid"]);
         $statusVentasAutorizado = isset($row["STATUS_VENTAS"]) && $row["STATUS_VENTAS"] == 'si';
         $mostrarAgregarRechazo = ($statusRechazado == 'si' && $motivoRechazo == '');
         $mostrarVerRechazo = ($statusRechazado == 'si' && $motivoRechazo != '');
-
-      
         $permisoguardarRechazo = $database->variablespermisos('', 'rechazo_pagoviatico', 'guardar') == 'si';
         $permisomodificarRechazo = $database->variablespermisos('', 'rechazo_pagoviatico', 'modificar') == 'si';
-
     ?>
 
     <input type="hidden" id="motivo_rechazo_<?php echo $row["02SUBETUFACTURAid"]; ?>" value="<?php echo htmlspecialchars($motivoRechazo, ENT_QUOTES, 'UTF-8'); ?>" />
 
-
-
     <input type="checkbox"
-
         style="width:30px; cursor:pointer;"
-
         class="form-check-input"
-
         id="STATUS_RECHAZADO<?php echo $row["02SUBETUFACTURAid"]; ?>"
-
         name="STATUS_RECHAZADO<?php echo $row["02SUBETUFACTURAid"]; ?>"
-
         value="<?php echo $row["02SUBETUFACTURAid"]; ?>"
-
      <?php
-
         if ($statusVentasAutorizado) {
             echo 'disabled style="cursor:not-allowed;" title="No se puede rechazar: autorizado por ventas"';
         } elseif ($statusRechazado == 'si') {
@@ -1409,50 +1377,30 @@ echo implode(' ', $atributosVentas);
                 echo 'disabled style="cursor:not-allowed;" title="Sin permiso para modificar"';
             }
         }
-
         ?>
-
     />
 
-
-
         <?php if($permisoguardarRechazo || $permisomodificarRechazo){ ?>
-
    <button type="button" title="agregar!"
-
             id="agregar_rechazo_<?php echo $row['02SUBETUFACTURAid']; ?>"
-
             data-rechazo-id="<?php echo $row['02SUBETUFACTURAid']; ?>"
-
-                style="border:none;background:transparent;cursor:pointer;color:#007bff;font-size:14px;<?php echo $mostrarAgregarRechazo ? '' : 'display:none;'; ?>"
-
+            style="border:none;background:transparent;cursor:pointer;color:#007bff;font-size:14px;<?php echo $mostrarAgregarRechazo ? '' : 'display:none;'; ?>"
             onclick="abrirFormularioRechazo(<?php echo $row['02SUBETUFACTURAid']; ?>)">agregar <br>motivo</button>
-
-    
-
 <?php } ?>
-
 
     <button type="button" title="Ver motivo"
       id="ver_rechazo_<?php echo $row['02SUBETUFACTURAid']; ?>"
-
         data-rechazo-id="<?php echo $row['02SUBETUFACTURAid']; ?>"
-
        style="border:none;background:transparent;cursor:pointer;color:#145523;font-size:14px;font-weight:700;text-decoration:underline;<?php echo $mostrarVerRechazo ? '' : 'display:none;'; ?>"
-	   
-	   
         onclick="verMotivoRechazo(<?php echo $row['02SUBETUFACTURAid']; ?>)">ver</button>
 
-
     <?php $colspan += 1; ?>
-
 </td>
 
 <?php } ?>
 
 
 <?php /*inicia copiar y pegar iniciaA5*/ ?>
-<!--<hr/><H1>FOREACH FILTRO .PHP A5</H1><BR/>-->
 <?php  if($database->plantilla_filtro($nombreTabla,"ADJUNTAR_FACTURA_XML",$altaeventos,$DEPARTAMENTO)=="si"){ $colspan += 1; ?><td style="text-align:center"><?php echo $ADJUNTAR_FACTURA_XML; ?></td>
 <?php } ?>
 
@@ -1462,10 +1410,8 @@ echo implode(' ', $atributosVentas);
 <?php  if($database->plantilla_filtro($nombreTabla,"NUMERO_CONSECUTIVO_PROVEE",$altaeventos,$DEPARTAMENTO)=="si"){ $colspan += 1; ?><td style="text-align:center"><?php echo $row['NUMERO_CONSECUTIVO_PROVEE'];?></td>
 <?php } ?>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"ID_RELACIONADO",$altaeventos,$DEPARTAMENTO)=="si"){ $colspan += 1; ?><td style="text-align:center"><?php echo $row['ID_RELACIONADO'];?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"VIATICOSOPRO",$altaeventos,$DEPARTAMENTO)=="si"){ $colspan += 1; ?><td style="text-align:center"><?php echo $row['VIATICOSOPRO'];?></td>
 <?php } ?>
@@ -1493,7 +1439,6 @@ $MONTO_TOTAL_COTIZACION_ADEUDO12 += $row['MONTO_TOTAL_COTIZACION_ADEUDO']; $cols
 ?></td>
 <?php } ?>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"MONTO_FACTURA",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center">$<?php
 		$totales = 'si';
 echo  number_format($row['MONTO_FACTURA'],2,'.',',');
@@ -1508,7 +1453,6 @@ echo  number_format($row['IVA'],2,'.',',');
 $IVA12 += $row['IVA']; $colspan2 += 1;
 ?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"TImpuestosRetenidosIVA",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center"><?php
 		$totales = 'si';
@@ -1526,9 +1470,6 @@ $TImpuestosRetenidosISR12 += $row['TImpuestosRetenidosISR'];
 ?></td>
 <?php } ?>
 
-
-
-
 <?php  if($database->plantilla_filtro($nombreTabla,"MONTO_PROPINA",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center">$<?php
 		$totales = 'si';
 echo number_format($row['MONTO_PROPINA'],2,'.',',');
@@ -1542,13 +1483,9 @@ echo  number_format($row['IMPUESTO_HOSPEDAJE'],2,'.',',');
 		$totales = 'si';
 		$IMPUESTO_HOSPEDAJE12 += $row['IMPUESTO_HOSPEDAJE'];
 		$colspan2 += 1;
-		
 		$supropinamashospedaje = $row['MONTO_PROPINA'] + $row['IMPUESTO_HOSPEDAJE'];
-		
-		
 ?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"descuentos",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center"><?php 
 		$totales = 'si';
@@ -1557,18 +1494,12 @@ $descuentos12 += $row['descuentos']; $colspan2 += 1;
 ?></td>
 <?php } ?>
 
-
-
 <?php  if($database->plantilla_filtro($nombreTabla,"MONTO_DEPOSITAR",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center">$<?php 
 		$totales = 'si';
 echo  number_format($row['MONTO_DEPOSITAR'],2,'.',',');
 $MONTO_DEPOSITAR12 += $row['MONTO_DEPOSITAR']; $colspan2 += 1;
 ?></td>
 <?php } ?>
-
-
-
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"TIPO_DE_MONEDA",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center"><?php echo $row['TIPO_DE_MONEDA']; $colspan2 += 1;?></td>
 <?php } ?>
@@ -1587,7 +1518,6 @@ echo  number_format($row['TOTAL_ENPESOS'],2,'.',',');
 		$colspan2 += 1;
 ?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"PFORMADE_PAGO",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center"><?php echo $row['PFORMADE_PAGO']; $colspan2 += 1;?></td>
 <?php } ?>
@@ -1614,10 +1544,8 @@ echo  number_format($row['TOTAL_ENPESOS'],2,'.',',');
 <?php  if($database->plantilla_filtro($nombreTabla,"ADJUNTAR_ARCHIVO_1",$altaeventos,$DEPARTAMENTO)=="si"){ ?><td style="text-align:center"><?php echo $ADJUNTAR_ARCHIVO_1;  $colspan2 += 1;?></td>
 <?php } ?>
 
-
 <?php  
 if ($database->plantilla_filtro($nombreTabla,"FECHA_DE_LLENADO",$altaeventos,$DEPARTAMENTO)=="si") {
-
     $fechaHora = $row['FECHA_DE_LLENADO'];
     $fecha = date('d-m-Y', strtotime($fechaHora));
     $hora  = date('H:i:s', strtotime($fechaHora));
@@ -1632,20 +1560,6 @@ if ($database->plantilla_filtro($nombreTabla,"FECHA_DE_LLENADO",$altaeventos,$DE
     $colspan2 += 1;
 } 
 ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <?php /*INICIA copiar y PEGAR XML*/ ?>
@@ -1680,13 +1594,11 @@ if ($database->plantilla_filtro($nombreTabla,"FECHA_DE_LLENADO",$altaeventos,$DE
 	 ?></td>
 <?php } ?>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"CLAVE_UNIDAD",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center"><?php echo $row['ClaveUnidadConcepto'];
 	 $colspan2 += 1;
 	 ?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"CANTIDAD",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center"><?php echo number_format($row['CantidadConcepto'],2,'.',',');
@@ -1694,20 +1606,17 @@ if ($database->plantilla_filtro($nombreTabla,"FECHA_DE_LLENADO",$altaeventos,$DE
 	 ?></td>
 <?php } ?>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"CLAVE_PODUCTO",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center"><?php echo $row['ClaveProdServConcepto'];
 	 $colspan2 += 1;
 	 ?></td>
 <?php } ?>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"DESCRIPCION",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center"><?php echo ''. $row['DescripcionConcepto'];
  $colspan2 += 1;
  ?></td>
 <?php } ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"MonedaF",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center"><?php echo $row['Moneda']; $colspan2 += 1;?></td>
@@ -1737,8 +1646,6 @@ if ($database->plantilla_filtro($nombreTabla,"FECHA_DE_LLENADO",$altaeventos,$DE
     <td style="text-align:center"><?php echo $row['fechaTimbrado']; $colspan2 += 1;?></td>
 <?php } ?>
 
-
-
 <?php  if($database->plantilla_filtro($nombreTabla,"SUBTOTAL",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center">$<?php 
 
@@ -1748,22 +1655,14 @@ $MONTO_FACTURA123 = isset($row['MONTO_FACTURA'])?$row['MONTO_FACTURA']:'' ;
 if ($subTotal123 > 0) {
     $SUBTOL = number_format($subTotal123, 2, '.', ',');
     $SUBTOL2 = ($subTotal123);
- 
 } ELSE{
-
     $SUBTOL = number_format($MONTO_FACTURA123, 2, '.', ',');
     $SUBTOL2 = ($MONTO_FACTURA123);
 } 
 
 $SUBTOTALG +=$SUBTOL2;
 echo $SUBTOL;
-	
-	
 	$totales2 = 'si';
-	
-
-
-
 	?></td>
 <?php } ?>
 
@@ -1786,30 +1685,22 @@ echo $SUBTOL;
 <?php  /*if($database->plantilla_filtro($nombreTabla,"TOTAL_IMPUESTOS_TRASLADADOS",$altaeventos,$DEPARTAMENTO)=="si"){*/ ?>
     <td style="text-align:center">$<?php 
 
-//$IVAXML = '';
 $TImpuestosTrasladados123 = isset($row['TImpuestosTrasladados'])?$row['TImpuestosTrasladados']:'' ;
 $IVA123 = isset($row['IVA'])?$row['IVA']:'' ;
 
 if ($TImpuestosTrasladados123 > 0) {
     $IVAXML = number_format($TImpuestosTrasladados123, 2, '.', ',');
     $IVAXML2 = ($TImpuestosTrasladados123);
-    //$IVAXMLqq = $TImpuestosTrasladados123;
 } ELSE{
-   // $IVAXMLqq = $IVA123;
     $IVAXML = number_format($IVA123, 2, '.', ',');
     $IVAXML2 = ($IVA123);
 } 
 
 $IVAXMLGTOTAL2 +=$IVAXML2;
 echo $IVAXML;
-	
-	
 	$totales2 = 'si';
-	
-	
 	?></td>
 <?php /*}*/ ?>
-
 
 <?php  if($database->plantilla_filtro($nombreTabla,"IEPS",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
     <td style="text-align:center">$<?php 
@@ -1833,8 +1724,6 @@ echo $IVAXML;
 	?></td>
 <?php } ?>
 
-
-
    <td style="text-align:center" id="montoOriginal_<?php echo $row['02SUBETUFACTURAid']; ?>"><?php 
 
 $total123 = isset($row['totalf'])?$row['totalf']:'' ;
@@ -1843,9 +1732,7 @@ $MONTO_DEPOSITAR123 = isset($row['MONTO_DEPOSITAR'])?$row['MONTO_DEPOSITAR']:'' 
 if ($total123 > 0) {
     $porfalta = number_format($total123, 2, '.', ',');
     $porfalta2 = $total123 + $supropinamashospedaje;
-    
 } ELSE{
-   // $IVAXMLqq = $IVA123;
     $porfalta = number_format($MONTO_DEPOSITAR123, 2, '.', ',');
     $porfalta2 = ($MONTO_DEPOSITAR123);
 } 
@@ -1854,9 +1741,6 @@ $totalf12  +=$porfalta2;
 echo $porfalta;
 	
 $totales2 = 'si';
-	
-		
-	
 	?></td>
 
 <td style="text-align:center; background-color: <?php echo ($row['ID_RELACIONADO'] == '') ? '#00FF00' : 'transparent'; ?>" id="valorCalculado_<?php echo $row['02SUBETUFACTURAid']; ?>"> 
@@ -1878,7 +1762,6 @@ $totales2 = 'si';
     }
 ?>
 </td>
-   
 
 <?php if($database->variablespermisos('','viaticosquitar','ver')=='si'){ ?>
 <td style="text-align:center; background:<?php 
@@ -1895,11 +1778,9 @@ $totales2 = 'si';
     <span id="buscanumero<?php echo $row["02SUBETUFACTURAid"]; ?>">
         <?php if(strlen($row['UUID']) < 1): ?>
             <?php
-            // Verificar permiso de modificación
             $permiso_modificar = $database->variablespermisos('','viaticosquitar','modificar') == 'si';
             $disabled = ($row["STATUS_CHECKBOX"] == 'si' && !$permiso_modificar) ? 'disabled' : '';
             ?>
-            
 <input type="checkbox" style="width:30PX;" class="form-check-input" 
     id="STATUS_CHECKBOX<?php echo $row["02SUBETUFACTURAid"]; ?>"  
     name="STATUS_CHECKBOX<?php echo $row["02SUBETUFacturaid"]; ?>" 
@@ -1918,12 +1799,9 @@ $totales2 = 'si';
 <!-- Elemento para mostrar notificaciones -->
 <div id="ajax-notification" style="position:fixed; top:20px; right:20px; padding:15px; background:#4CAF50; color:white; border-radius:5px; display:none; z-index:1000;"></div>
 
-
-
 <?php
 
 $SICOMPRO = ($row['STATUS_CHECKBOX'] == 'no');
-
 $uuidVacio = empty($row['UUID']);
 $uuidlleno = !empty($row['UUID']);
 $ncplleno = !empty($row['NUMERO_CONSECUTIVO_PROVEE']);
@@ -1932,42 +1810,23 @@ $idvacio = empty($row['ID_RELACIONADO']);
 $comprobanteLleno = !empty($COMPROBANTE_DE_DEVOLUCION);
 $comprobantevacio = empty($COMPROBANTE_DE_DEVOLUCION);
 
-
-if ($uuidVacio && $idlleno && $SICOMPRO ) {
+if ($uuidVacio && $idlleno && $SICOMPRO) {
     $TOTALEE += $porfalta2;
-
     $PorfaltaDeFactura12 = $PorfaltaDeFactura12ig + ($TOTALEE * 1.46);
 } 
 
-
-
-
-
-
 ?>
 
-
-
-
 <?php
-
 
 $SICOMPRO = ($row['STATUS_CHECKBOX'] == 'no');
 $uuidVacio = empty($row['UUID']);
 $uuidlleno = !empty($row['UUID']);
 $ncplleno = !empty($row['NUMERO_CONSECUTIVO_PROVEE']);
 
-
-
-if ($ncplleno && $uuidVacio && $SICOMPRO ) {
- 
-  
-    $PorfaltaDeFactura123 =  $PorfaltaDeFactura12ig ;
-      	
+if ($ncplleno && $uuidVacio && $SICOMPRO) {
+    $PorfaltaDeFactura123 = $PorfaltaDeFactura12ig;
 } 
-    
-
-
 
 ?>
 
@@ -1978,8 +1837,6 @@ if ($ncplleno && $uuidVacio && $SICOMPRO ) {
 </td>
 <td  <?php echo $fondo_existe_xml; ?>>
 <?php if($database->variablespermisos('','reembolsos','modificar')=='si'){ ?>
-
-
 <input type="button" name="view" value="MODIFICAR" id="<?php echo $row["02SUBETUFACTURAid"]; ?>" class="btn btn-info btn-xs view_dataPAGOPROVEEmodifica" /><?php } ?></td>
 
 <?php if($database->variablespermisos('','SUBEF_VYO1','ver')=='si'){ ?>
@@ -1988,45 +1845,29 @@ if ($ncplleno && $uuidVacio && $SICOMPRO ) {
 $ID_RELACIONADO = isset($row['ID_RELACIONADO']) ? trim($row['ID_RELACIONADO']) : '';
 $UUID           = isset($row['UUID']) ? trim($row['UUID']) : '';
 
-// SOLO este caso -> SUBIR FACTURA:
-// ID_RELACIONADO lleno Y UUID vacío
-if ($ID_RELACIONADO !== '' && $UUID === '') {
+if ($ID_RELACIONADO !== '') {
+    if ($UUID === '') {
+        $label = 'SUBIR FACTURA';
+    } else {
+        $label = 'MODIFICAR';
+    }
 ?>
     <input 
         type="button" 
         name="view" 
-        value="SUBIR FACTURA" 
-        id="<?php echo $row["02SUBETUFACTURAid"]; ?>" 
-        class="btn btn-info btn-xs view_dataSUBIRF" 
-    />
-<?php
-}
-// TODOS LOS DEMÁS CASOS -> MODIFICAR
-else {
-?>
-    <input 
-        type="button" 
-        name="view" 
-        value="MODIFICAR" 
+        value="<?php echo $label; ?>" 
         id="<?php echo $row["02SUBETUFACTURAid"]; ?>" 
         class="btn btn-info btn-xs view_dataSUBIRF" 
     />
 <?php
 }
 ?>
-
-
-
 </td>
 <?php } ?>
 
-
-
-
 <td><?php if($database->variablespermisos('','viaticos','borrar')=='si'){ ?>
-
-
-<input type="button" name="view2" value="BORRAR" id="<?php echo $row["02SUBETUFACTURAid"]; ?>" class="btn btn-info btn-xs view_dataSBborrar" /><?php } ?></td>	<td>
+<input type="button" name="view2" value="BORRAR" id="<?php echo $row["02SUBETUFACTURAid"]; ?>" class="btn btn-info btn-xs view_dataSBborrar" /><?php } ?></td>
+<td>
     <input type="checkbox" 
            class="checkbox"
            data-id="<?php echo $row['02SUBETUFACTURAid']; ?>" 
@@ -2049,10 +1890,8 @@ else {
 	?>
 
 
-
 <?php if($database->variablespermisos('','totales_VYO','ver')=='si'){ ?>
 <tr>
-
 
 <?php if($totales == 'si'){ ?>
 <td style="text-align:right; padding-right:45px;" colspan="<?php echo $colspan +2; ?>" ><strong style="font-size:16px">TOTALES</strong></td>
@@ -2066,11 +1905,9 @@ else {
 <td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($MONTO_FACTURA12,2,'.',','); ?></strong></td>
 <?php } ?>
 
-
 <?php if($database->plantilla_filtro($nombreTabla,"IVA",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php  echo number_format($IVA12,2,'.',','); ?></strong></td>
 <?php } ?>
-
 
 <?php if($database->plantilla_filtro($nombreTabla,"TImpuestosRetenidosIVA",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($TImpuestosRetenidosIVA12,2,'.',','); ?></strong></td>
@@ -2083,7 +1920,6 @@ else {
 <td style="text-align:center"><strong style="font-size:16px">$<?php  echo number_format($MONTO_PROPINA12,2,'.',','); ?></strong></td>
 <?php } ?>
 
-
 <?php if($database->plantilla_filtro($nombreTabla,"IMPUESTO_HOSPEDAJE",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php  echo number_format($IMPUESTO_HOSPEDAJE12,2,'.',','); ?></strong></td>
 <?php } ?>
@@ -2092,16 +1928,12 @@ else {
 <td style="text-align:center"><strong style="font-size:16px">$<?php  echo number_format($descuentos12,2,'.',','); ?></strong></td>
 <?php } ?>
 
-
-
 <?php  if($database->plantilla_filtro($nombreTabla,"MONTO_DEPOSITAR",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($MONTO_DEPOSITAR12,2,'.',','); ?></strong></td>
 <?php } ?>
 
-
 </tr>	
 <?php } ?>
-
 
 
 <?php if($NUMERO_CONSECUTIVO_PROVEE==''){
@@ -2116,7 +1948,6 @@ else {
 <?php if($database->plantilla_filtro($nombreTabla,"SUBTOTAL",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($SUBTOL2ig,2,'.',','); ?></strong></td>
 <?php } ?>
-                                                             
 
 <?php if($database->plantilla_filtro($nombreTabla,"propina",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$ <?php echo number_format($propina12,2,'.',','); ?></strong></td>
@@ -2140,13 +1971,9 @@ else {
 
 <td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($TUA12,2,'.',','); ?></strong></td>
 
-
 <?php  if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
 <td style="text-align:center;color:#a90d3a;" ><strong style="font-size:16px" >$<?php echo number_format($totalf12if,2,'.',','); ?></strong></td>
 <?php } ?>
-
-
-
 
 <td style="text-align:center;" ><strong style="font-size:16px;" id="totalCalculado">$<?php 
 if (!empty($PorfaltaDeFactura12)) {
@@ -2158,10 +1985,8 @@ if (!empty($PorfaltaDeFactura12)) {
 }
 ?></strong></td> 
 
-
 </tr>
 <?php } ?>
-
 
 
 <?php if($NUMERO_CONSECUTIVO_PROVEE!=''){
@@ -2176,30 +2001,28 @@ if (!empty($PorfaltaDeFactura12)) {
 <?php if($database->plantilla_filtro($nombreTabla,"SUBTOTAL",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($SUBTOL2ig,2,'.',','); ?></strong></td>
 <?php } ?>
-                                                             
 
 <?php if($database->plantilla_filtro($nombreTabla,"propina",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
 <td style="text-align:center"><strong style="font-size:16px">$ <?php echo number_format($propina12 ,2,'.',','); ?></strong></td>
 <?php } ?>
 
 <?php if($database->plantilla_filtro($nombreTabla,"DESCUENTO",$altaeventos,$DEPARTAMENTO)=="si"){ ?>
-<td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($DESCUENTO12,2,'.',','); /*echo number_format($DESCUENTO12,2,'.',',');*/ ?></strong></td>
+<td style="text-align:center"><strong style="font-size:16px">$<?php echo number_format($DESCUENTO12,2,'.',','); ?></strong></td>
 <?php } ?>
 
 <?php  if($database->plantilla_filtro($nombreTabla,"TOTAL_IMPUESTOS_TRASLADADOS",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
-<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($IVAXMLGTOTAL2,2,'.',','); /*echo number_format($IVAXMLGTOTAL2,2,'.',','); */ ?></strong></td>
+<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($IVAXMLGTOTAL2,2,'.',','); ?></strong></td>
 <?php } ?>
 
 <?php  if($database->plantilla_filtro($nombreTabla,"IEPSXML",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
-<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($IEPSXML12,2,'.',','); /*echo number_format($IEPSXML12,2,'.',','); */ ?></strong></td>
+<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($IEPSXML12,2,'.',','); ?></strong></td>
 <?php } ?>
 
 <?php  if($database->plantilla_filtro($nombreTabla,"TOTAL_IMPUESTOS_RETENIDOS",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
-<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($TImpuestosRetenidos12,2,'.',','); /* echo number_format($TImpuestosRetenidos12,2,'.',',');*/ ?></strong></td>
+<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($TImpuestosRetenidos12,2,'.',','); ?></strong></td>
 <?php } ?>
 
-<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($TUA12ig,2,'.',','); /* echo number_format($TUA12,2,'.',','); */?></strong></td>
-
+<td style="text-align:center" ><strong style="font-size:16px" >$<?php echo number_format($TUA12ig,2,'.',','); ?></strong></td>
 
 <?php  if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=="si"){  ?>
 <td style="text-align:center;color:#a90d3a;" ><strong style="font-size:16px" >$<?php echo number_format($totalf12if,2,'.',','); ?></strong></td>
@@ -2214,8 +2037,6 @@ if (!empty($PorfaltaDeFactura12)) {
     echo number_format($PorfaltaDeFactura12ig, 2, '.', ',');
 }
 ?></strong></td>  
-
-
 
 </tr>
 <?php } ?>
