@@ -1060,22 +1060,14 @@ foreach ($datos as $key => $row) {
 
     $numeroEventoRegistro  = isset($row["NUMERO_EVENTO"]) ? strtoupper(trim((string)$row["NUMERO_EVENTO"])) : '';
     $tienePermisoVenta     = $numeroEventoRegistro !== '' && isset($eventosAutorizadosVentas[$numeroEventoRegistro]);
-    $esReembolso           = isset($row["VIATICOSOPRO"]) && strtoupper(trim($row["VIATICOSOPRO"])) === 'REEMBOLSO';
+   
 
-   $total123fila              = normalizarMontoFiltroVentas(isset($row['totalf']) ? $row['totalf'] : 0);
+    $idRelacionadoVacio      = !isset($row['ID_RELACIONADO']) || trim((string)$row['ID_RELACIONADO']) === '';
 
-    $MONTO_DEPOSITAR123fila    = normalizarMontoFiltroVentas(isset($row['MONTO_DEPOSITAR']) ? $row['MONTO_DEPOSITAR'] : 0);
+    $totalFilaVentas           = normalizarMontoFiltroVentas(isset($totalf12if) ? $totalf12if : 0);
 
-    $montoPropinaFila          = normalizarMontoFiltroVentas(isset($row['MONTO_PROPINA']) ? $row['MONTO_PROPINA'] : 0);
+    $totalEnRangoPermitido     = !$idRelacionadoVacio || ($totalFilaVentas >= 0 && $totalFilaVentas <= 0.99);
 
-    $impuestoHospedajeFila     = normalizarMontoFiltroVentas(isset($row['IMPUESTO_HOSPEDAJE']) ? $row['IMPUESTO_HOSPEDAJE'] : 0);
-
-    $supropinamashospedajeFila = $montoPropinaFila + $impuestoHospedajeFila;
-
-    $totalFilaVentas           = ($total123fila > 0)
-                                    ? $total123fila + $supropinamashospedajeFila
-                                    : $MONTO_DEPOSITAR123fila;
-    $totalEnRangoPermitido     = ($totalFilaVentas >= 0 && $totalFilaVentas <= 0.99);
     // ── fin variables VENTAS ──
 
     // 1. PRIORIDAD: Si está rechazado → ROJO
