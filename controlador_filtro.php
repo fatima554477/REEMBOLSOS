@@ -948,6 +948,13 @@ if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=
 					$TUA12g += $row['TUA'];
 				}				
 			}
+	$propinaRelacionadaConUuid = 0;
+
+			if ($row['ID_RELACIONADO'] != '' && trim((string)$row['UUID']) != '') {
+
+				$propinaRelacionadaConUuid = (float)$row['MONTO_PROPINA'];
+
+			}
 
 			if($row['ID_RELACIONADO']==''){
 				if ($row['totalf'] > 0) {
@@ -957,9 +964,11 @@ if($database->plantilla_filtro($nombreTabla,"total",$altaeventos,$DEPARTAMENTO)=
 				}				
 			}else{
 				if ($row['totalf'] > 0) {
-					$totalf12g += $row['totalf'];
+					$totalf12g += $row['totalf'] + $propinaRelacionadaConUuid;
+
 				} ELSE{
-					$totalf12g += $row['MONTO_DEPOSITAR'];
+					$totalf12g += $row['MONTO_DEPOSITAR'] + $propinaRelacionadaConUuid;
+
 				}				
 			}
 			
@@ -1062,9 +1071,12 @@ foreach ($datos as $key => $row) {
     $tienePermisoVenta     = $numeroEventoRegistro !== '' && isset($eventosAutorizadosVentas[$numeroEventoRegistro]);
    
 
-   $totalFilaVentas           = normalizarMontoFiltroVentas(isset($totalf12if) ? $totalf12if : 0);
+    $idRelacionadoVacio      = !isset($row['ID_RELACIONADO']) || trim((string)$row['ID_RELACIONADO']) === '';
 
-    $totalEnRangoPermitido     = ($totalFilaVentas >= 0 && $totalFilaVentas <= .99);
+    $totalFilaVentas           = normalizarMontoFiltroVentas(isset($totalf12if) ? $totalf12if : 0);
+
+    $totalEnRangoPermitido     = !$idRelacionadoVacio || ($totalFilaVentas >= 0 && $totalFilaVentas <= 0.99);
+
     // ── fin variables VENTAS ──
 
     // 1. PRIORIDAD: Si está rechazado → ROJO
@@ -1756,13 +1768,24 @@ echo $IVAXML;
 
 $total123 = isset($row['totalf'])?$row['totalf']:'' ;
 $MONTO_DEPOSITAR123 = isset($row['MONTO_DEPOSITAR'])?$row['MONTO_DEPOSITAR']:'' ;
+$propinaRelacionadaConUuid = 0;
+
+if (!empty($row['ID_RELACIONADO']) && !empty($row['UUID'])) {
+
+    $propinaRelacionadaConUuid = (float)$row['MONTO_PROPINA'];
+
+}
 
 if ($total123 > 0) {
-    $porfalta = number_format($total123, 2, '.', ',');
-    $porfalta2 = $total123 + $supropinamashospedaje;
+    $porfalta2 = $total123 + $propinaRelacionadaConUuid;
+
+    $porfalta = number_format($porfalta2, 2, '.', ',');
+
 } ELSE{
-    $porfalta = number_format($MONTO_DEPOSITAR123, 2, '.', ',');
-    $porfalta2 = ($MONTO_DEPOSITAR123);
+  $porfalta2 = $MONTO_DEPOSITAR123 + $propinaRelacionadaConUuid;
+
+    $porfalta = number_format($porfalta2, 2, '.', ',');
+
 } 
 
 $totalf12  +=$porfalta2;
