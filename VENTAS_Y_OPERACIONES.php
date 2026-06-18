@@ -257,8 +257,10 @@ if($xmlTemporal !== '' && is_file($url)){
 </div>
 
 
+<div id="1ADJUNTAR_FACTURA_PDF">
+<div id="2ADJUNTAR_FACTURA_PDF">
 
-<div id="2ADJUNTAR_FACTURA_PDF"><?php 
+<?php 
 
 $listadosube = $pagoproveedores->Listado_subefacturadocto('ADJUNTAR_FACTURA_PDF');
 
@@ -304,7 +306,7 @@ echo "<a target='_blank' href='includes/archivos/".$rowsube['ADJUNTAR_FACTURA_PD
 
                  <tr style="background: #d2faf1"> 
 
-     <th scope="row"> <label for="validationCustom03" class="form-label">NOMBRE COMERCIAL</label></th>
+     <th scope="row"> <label for="validationCustom03" class="form-label">NOMBRE COMERCIAL<br><a style="color:red;font-size:11px">OBLIGATORIO</a></label></th>
    <td><input type="text" class="form-control"  required=""  value="<?php echo $NOMBRE_COMERCIAL; ?>" name="NOMBRE_COMERCIAL" placeholder="NOMBRE COMERCIAL"></td>
                  </tr>
 				 
@@ -337,7 +339,7 @@ echo "<a target='_blank' href='includes/archivos/".$rowsube['ADJUNTAR_FACTURA_PD
 				 
 				                  <tr  style="background: #d2faf1">
 
-                 <th scope="row"> <label for="validationCustom03" class="form-label">MOTIVO DEL GASTO:</label></th>
+                 <th scope="row"> <label for="validationCustom03" class="form-label">MOTIVO DEL GASTO:<br><a style="color:red;font-size:11px">OBLIGATORIO</a></label></th>
                  <td><input type="text" class="form-control" id="validationCustom03" required=""  value="<?php echo $MOTIVO_GASTO; ?>" name="MOTIVO_GASTO"placeholder="MOTIVO DEL GASTO "></td>
                  </tr>
                  <tr style="background: #d2faf1">
@@ -435,7 +437,7 @@ var parametros = {
 
             <tr style="background:#fcf3cf">
 					<th scope="row">
-						<label style="width:300px" for="validationCustom03" class="form-label">SUB TOTAL:</label>
+						<label style="width:300px" for="validationCustom03" class="form-label">SUB TOTAL:<br><a style="color:red;font-size:11px">OBLIGATORIO</a></label>
 					</th>
 					<td>
 						<div id="2MONTO_FACTURA">
@@ -511,7 +513,7 @@ var parametros = {
                  <th scope="row"> <label  style="width:300px" for="validationCustom03" class="form-label">TOTAL:</label></th>
                  <td>
 				 <div id="2MONTO_DEPOSITAR">
-             <div class="input-group mb-3"> <span class="input-group-text">$</span><input type="text" class="form-control" id="MONTO_DEPOSITAR" required=""   value="<?php echo $total; ?>" name="MONTO_DEPOSITAR"  placeholder="TOTAL">
+             <div class="input-group mb-3"> <span class="input-group-text">$</span><input type="text" class="form-control" id="MONTO_DEPOSITAR" required=""   value="<?php echo $total; ?>" name="MONTO_DEPOSITAR"  placeholder="TOTAL"  readonly="readonly">
 				
 				 </td>
                  </tr> </div> </div>
@@ -579,7 +581,7 @@ var parametros = {
 				 
                  <tr  style="background: #d2faf1">
 
-                 <th><label style="width: 300px" for="validationCustom02" class="form-label">FORMA DE PAGO:</label></th>
+                 <th><label style="width: 300px" for="validationCustom02" class="form-label">FORMA DE PAGO:<br><a style="color:red;font-size:11px">OBLIGATORIO</a></label></th>
 				 
 				 
              <td style="width: 45%;">
@@ -588,10 +590,12 @@ var parametros = {
 <div id="2PFORMADE_PAGO">
 
        <select class="form-select mb-3" aria-label="Default select example" id="PFORMADE_PAGO" required="" name="PFORMADE_PAGO">
+	   
+	           <option style="background:#f2b4f5" <?php if($formaDePago=='03'){echo "selected";} ?> value="03">03 TRANSFERENCIA ELECTRONICA DE FONDOS</option>
 
               <option style="background:#dee6fc" <?php if($formaDePago=='04'){echo "selected";} ?> value="04">04 TARJETA DE CREDITO</option>
 			  
-              <option style="background:#f2b4f5" <?php if($formaDePago=='03'){echo "selected";} ?> value="03">03 TRANSFERENCIA ELECTRONICA DE FONDOS</option>
+             
         
               <option style="background:#ddf5da"  <?php if($formaDePago=='01'){echo "selected";} ?>  value="01 EFECTIVO" >01 EFECTIVO</option>
 				
@@ -621,7 +625,7 @@ var parametros = {
 
                  <tr style="background: #d2faf1"> 
 
-                 <th scope="row"> <label for="validationCustom03" class="form-label">FECHA EFECTIVA DE PAGO:</label></th>
+                 <th scope="row"> <label for="validationCustom03" class="form-label">FECHA EFECTIVA DE PAGO:<br><a style="color:red;font-size:11px">OBLIGATORIO</a></label></th>
                  <td><input type="date" class="form-control" id="validationCustom03" required=""  value="<?php echo $FECHA_A_DEPOSITAR; ?>" name="FECHA_A_DEPOSITAR" placeholder="FECHA A DEPOSITAR" ></td>
                  </tr>
 
@@ -645,7 +649,7 @@ var parametros = {
 <td><input type="text" class="form-control" id="validationCustom03" required=""  value="<?php echo $_SESSION["NOMBREUSUARIO"]; ?>" name="NOMBRE_DEL_AYUDO"placeholder="NOMBRE DEL EJECUTIVO" readonly="readonly"></td>
 </tr>					 
 <tr>
-    <th style="background: #d2faf1; text-align:left" scope="col">EJECUTIVO QUE REALIZÓ ESTE GASTO:</th>
+    <th style="background: #d2faf1; text-align:left" scope="col">EJECUTIVO QUE REALIZÓ ESTE GASTO:<br><a style="color:red;font-size:11px">OBLIGATORIO</a></th>
        <td  style="background: #d2faf1"  >
 <?php
 $encabezadoA = '';
@@ -693,7 +697,7 @@ echo $encabezadoA.$option2.'</select>';
 		            </div>
 
 			 	 
-				 <div id="2ADJUNTAR_ARCHIVO_1"><?php 
+				 <div id="1ADJUNTAR_ARCHIVO_1"><?php 
 	           $listadosube = $pagoproveedores->Listado_subefacturadocto('ADJUNTAR_ARCHIVO_1');
 
 	            while($rowsube=mysqli_fetch_array($listadosube)){
@@ -714,6 +718,7 @@ echo $encabezadoA.$option2.'</select>';
 
 
             <input type="hidden" name="hiddenpagoproveedores" value="hiddenpagoproveedores">
+            <input type="hidden" name="IPpagoprovee" value="IPpagoprovee">
                           
 
 	
