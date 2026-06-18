@@ -246,9 +246,11 @@ $DescripcionConcepto = isset($_POST["DescripcionConcepto"])?$_POST["DescripcionC
 
 // ── Campos obligatorios específicos de ventasoperaciones2 ─────────────────
 if( $NOMBRE_DEL_EJECUTIVO == "" OR $NOMBRE_COMERCIAL == "" OR $MOTIVO_GASTO == "" OR $FECHA_A_DEPOSITAR == "" OR $PFORMADE_PAGO == ""){
-		$_SESSION['mantener_adjuntos_pago_proveedor'] = true;
+		
 
 	echo "<P style='color:red; font-size:23px;'>FAVOR DE LLENAR CAMPOS OBLIGATORIOS</p>";
+	exit;
+
 }else{	
  	
 	$esAltaNueva = ($ENVIARPAGOprovee == 'ENVIARPAGOprovee' && trim((string)$IPpagoprovee) == '');
@@ -415,6 +417,9 @@ if( $_FILES["ADJUNTAR_FACTURA_XML"] == true){
 
 $idPROV = isset($_SESSION["idPROV"])?$_SESSION["idPROV"]:$idwebc;
 $IPpagoprovee = isset($_POST["IPpagoprovee"])?$_POST["IPpagoprovee"]:"";
+$idem1 = isset($_SESSION['idem']) ? $_SESSION['idem'] : (isset($_SESSION['idempermiso']) ? $_SESSION['idempermiso'] : '');
+
+$idPROVSubida = ($idPROV != '') ? $idPROV : (($idem1 != '') ? $idem1 : 1);
 
 
 // ── BLOQUE 1: Subida con IPpagoprovee (registro existente) ────────────────
@@ -529,23 +534,26 @@ foreach($_FILES AS $ETQIETA => $VALOR){
 	}
 }
 
-}else{ echo "no hay usuario seleccionado";}
+
+}
 }
 
 
 // ── BLOQUE 2: Subida sin IPpagoprovee (registro nuevo) ───────────────────
 
 if($IPpagoprovee =='' and $hiddenpagoproveedores != 'hiddenpagoproveedores' and ($_FILES["ADJUNTAR_FACTURA_XML"] == true or $_FILES["ADJUNTAR_FACTURA_PDF"] == true or  $_FILES["ADJUNTAR_COTIZACION"] == true  or  $_FILES["CONPROBANTE_TRANSFERENCIA"] == true  or  $_FILES["ADJUNTAR_ARCHIVO_1"] == true  or $_FILES["FOTO_ESTADO_PROVEE11"] ==  true or  $_FILES["COMPLEMENTOS_PAGO_PDF"] == true or  $_FILES["COMPLEMENTOS_PAGO_XML"] == true or  $_FILES["CANCELACIONES_PDF"] == true or  $_FILES["CANCELACIONES_XML"] == true or  $_FILES ["ADJUNTAR_FACTURA_DE_COMISION_PDF"] == true or  $_FILES ["ADJUNTAR_FACTURA_DE_COMISION_XML"] == true or  $_FILES["CALCULO_DE_COMISION"] == true or  $_FILES["COMPROBANTE_DE_DEVOLUCION"] == true or  $_FILES["NOTA_DE_CREDITO_COMPRA"] == true )){
-if($idPROV != ''){
+if($idPROVSubida != ''){
+
 foreach($_FILES AS $ETQIETA => $VALOR){
 
 	if($_FILES['ADJUNTAR_FACTURA_XML']==true){
-		$idem1 = $_SESSION['idem'];
-		$ADJUNTAR_FACTURA_XML = $conexion->sologuardar6_usuario($ETQIETA,$ADJUNTAR_FACTURA_XML2,'02SUBETUFACTURADOCTOS',$idPROV,$IPpagoprovee,$idem1,'xml');	
+		$ADJUNTAR_FACTURA_XML = $conexion->sologuardar6_usuario($ETQIETA,$ADJUNTAR_FACTURA_XML2,'02SUBETUFACTURADOCTOS',$idPROVSubida,$IPpagoprovee,$idem1,'xml');	
+	
 	}else{
-		$idem1 = $_SESSION['idem'];
+		
 		// ── Interceptar errores de cargar() para campos no-XML ────────────
-		$resultadoCarga2 = $conexion->cargar($ETQIETA,'02SUBETUFACTURADOCTOS','8',$idPROV,'si','',$idem1);
+			$resultadoCarga2 = $conexion->cargar($ETQIETA,'02SUBETUFACTURADOCTOS','8',$idPROVSubida,'si','',$idem1);
+
 
 		if($resultadoCarga2 === 'VACIO'){
 			echo 'VACIO^^'.$ETQIETA;
