@@ -417,9 +417,14 @@ if( $_FILES["ADJUNTAR_FACTURA_XML"] == true){
 
 $idPROV = isset($_SESSION["idPROV"])?$_SESSION["idPROV"]:$idwebc;
 $IPpagoprovee = isset($_POST["IPpagoprovee"])?$_POST["IPpagoprovee"]:"";
-$idem1 = isset($_SESSION['idem']) ? $_SESSION['idem'] : (isset($_SESSION['idempermiso']) ? $_SESSION['idempermiso'] : '');
 
-$idPROVSubida = ($idPROV != '') ? $idPROV : (($idem1 != '') ? $idem1 : 1);
+// ── FIX: mismo fallback que el primer controlador, idem1 nunca queda vacío ─
+$idem1 = (isset($_SESSION['idem']) && $_SESSION['idem'] != '') ? $_SESSION['idem'] : 1;
+
+// ── FIX: para alta nueva (sin IPpagoprovee) siempre usamos idem1, igual
+//         que hace el primer controlador. Ya no se mezcla con $idPROV/$idwebc,
+//         que podían traer un valor de sesión de un proveedor distinto.
+$idPROVSubida = $idem1;
 
 
 // ── BLOQUE 1: Subida con IPpagoprovee (registro existente) ────────────────
@@ -544,15 +549,24 @@ foreach($_FILES AS $ETQIETA => $VALOR){
 if($IPpagoprovee =='' and $hiddenpagoproveedores != 'hiddenpagoproveedores' and ($_FILES["ADJUNTAR_FACTURA_XML"] == true or $_FILES["ADJUNTAR_FACTURA_PDF"] == true or  $_FILES["ADJUNTAR_COTIZACION"] == true  or  $_FILES["CONPROBANTE_TRANSFERENCIA"] == true  or  $_FILES["ADJUNTAR_ARCHIVO_1"] == true  or $_FILES["FOTO_ESTADO_PROVEE11"] ==  true or  $_FILES["COMPLEMENTOS_PAGO_PDF"] == true or  $_FILES["COMPLEMENTOS_PAGO_XML"] == true or  $_FILES["CANCELACIONES_PDF"] == true or  $_FILES["CANCELACIONES_XML"] == true or  $_FILES ["ADJUNTAR_FACTURA_DE_COMISION_PDF"] == true or  $_FILES ["ADJUNTAR_FACTURA_DE_COMISION_XML"] == true or  $_FILES["CALCULO_DE_COMISION"] == true or  $_FILES["COMPROBANTE_DE_DEVOLUCION"] == true or  $_FILES["NOTA_DE_CREDITO_COMPRA"] == true )){
 if($idPROVSubida != ''){
 
+	// ── FIX: sincroniza la sesión igual que hace el primer controlador,
+	//         para que cualquier lectura posterior de $_SESSION["idPROV"]
+	//         (p.ej. en otra subida dentro de la misma sesión) sea consistente.
+	$_SESSION["idPROV"] = $idem1;
+
 foreach($_FILES AS $ETQIETA => $VALOR){
 
 	if($_FILES['ADJUNTAR_FACTURA_XML']==true){
-		$ADJUNTAR_FACTURA_XML = $conexion->sologuardar6_usuario($ETQIETA,$ADJUNTAR_FACTURA_XML2,'02SUBETUFACTURADOCTOS',$idPROVSubida,$IPpagoprovee,$idem1,'xml');	
+		// ── FIX: se usa $idem1 en lugar de $idPROVSubida para que el
+		//         cuarto y el sexto parámetro sean siempre la misma identidad,
+		//         igual que en el primer controlador.
+		$ADJUNTAR_FACTURA_XML = $conexion->sologuardar6_usuario($ETQIETA,$ADJUNTAR_FACTURA_XML2,'02SUBETUFACTURADOCTOS',$idem1,$IPpagoprovee,$idem1,'xml');	
 	
 	}else{
 		
 		// ── Interceptar errores de cargar() para campos no-XML ────────────
-			$resultadoCarga2 = $conexion->cargar($ETQIETA,'02SUBETUFACTURADOCTOS','8',$idPROVSubida,'si','',$idem1);
+		// ── FIX: se usa $idem1 en lugar de $idPROVSubida ───────────────────
+			$resultadoCarga2 = $conexion->cargar($ETQIETA,'02SUBETUFACTURADOCTOS','8',$idem1,'si','',$idem1);
 
 
 		if($resultadoCarga2 === 'VACIO'){

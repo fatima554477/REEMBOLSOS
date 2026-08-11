@@ -257,8 +257,9 @@ if($xmlTemporal !== '' && is_file($url)){
 </div>
 
 
-<div id="1ADJUNTAR_FACTURA_PDF">
+
 <div id="2ADJUNTAR_FACTURA_PDF">
+<div id="1ADJUNTAR_FACTURA_PDF"></div>
 
 <?php 
 
@@ -535,6 +536,7 @@ var parametros = {
                  <div id="TIPO_DE_MONEDA2">				 
 				 <select class="form-select mb-3" aria-label="Default select example" id="validationCustom02" required="" name="TIPO_DE_MONEDA">			                 
                          <option style="background: #c9e8e8" value="<?php echo $Moneda; ?>" <?php if($Moneda=='MXN'){echo "selected";} ?>>MXN (Peso mexicano)</option>
+						  <option style="background: #c9e8e8" name="TIPO_DE_MONEDA" value="COP" <?php if($Moneda=='COP' ){echo "selected";} ?>>COP (Peso colombiano)</option>
                          <option style="background: #a3e4d7" value="<?php echo $Moneda; ?>" <?php if($Moneda=='USD'){echo "selected";} ?>>USD (Dolar)</option>
                          <option style="background: #e8f6f3" value="<?php echo $Moneda; ?>" <?php if($Moneda=='EUR'){echo "selected";} ?>>EUR (Euro)</option>
                          <option style="background: #fdf2e9" value="<?php echo $Moneda; ?>" <?php if($Moneda=='GBP'){echo "selected";} ?>>GBP (Libra esterlina)</option>
@@ -697,7 +699,10 @@ echo $encabezadoA.$option2.'</select>';
 		            </div>
 
 			 	 
-				 <div id="1ADJUNTAR_ARCHIVO_1"><?php 
+				 <div id="2ADJUNTAR_ARCHIVO_1">
+				 <div id="1ADJUNTAR_ARCHIVO_1"></div>
+				 
+				 <?php 
 	           $listadosube = $pagoproveedores->Listado_subefacturadocto('ADJUNTAR_ARCHIVO_1');
 
 	            while($rowsube=mysqli_fetch_array($listadosube)){

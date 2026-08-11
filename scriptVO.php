@@ -224,9 +224,23 @@ function ajax_file_upload1(file_obj, nombre) {
             } else {
                      var result = resp.split('^^');
 
-                $('#' + nombre).val($.trim(result[0] || ''));
+                          var archivoSubido = $.trim(result[0] || '');
 
-                $('#1' + nombre).html('<p style="color:green;">✅ ¡Archivo cargado con éxito!</p>');
+                $('#' + nombre).val(archivoSubido);
+
+
+
+
+      var camposFacturaUnica = ['ADJUNTAR_FACTURA_XML', 'ADJUNTAR_FACTURA_PDF'];
+                if (camposFacturaUnica.indexOf(nombre) !== -1) {
+                    $('#1' + nombre).empty();
+                } else {
+                    $('#1' + nombre).html(
+                        '<a target="_blank" href="includes/archivos/' + archivoSubido + '">Visualizar!</a>' +
+                        ' <span id="' + archivoSubido + '" class="view_dataSBborrar2" style="cursor:pointer;color:blue;">Borrar!</span>'
+                    );
+                }
+
                 $('#mensajeADJUNTOCOL').html('<p style="color:green;">✅ ¡Actualizado!</p>');
 
                 if (nombre === 'ADJUNTAR_FACTURA_XML') {
@@ -363,7 +377,8 @@ function guardarYIrATarget2() {
 ------------------------------------------------------- */
 $(document).ready(function () {
 
-    activarTarget(null);
+      activarTarget(null);
+
 
     var allNums = [];
     for (var n = 1; n <= 15; n++) allNums.push(n);
@@ -471,8 +486,10 @@ $(document).ready(function () {
     $(document).on('click', '.view_dataSBborrar2', function () {
         var borra_id_sb = $(this).attr('id');
         var $documentoNodo = $(this);
-        var $contenedorCampo = $documentoNodo.closest('[id^="3"]');
-        var campoAdjunto = $contenedorCampo.length ? $contenedorCampo.attr('id').replace(/^3/, '') : '';
+        var $contenedorCampo = $documentoNodo.closest('[id^="2"], [id^="3"]');
+
+        var campoAdjunto = $contenedorCampo.length ? $contenedorCampo.attr('id').replace(/^[23]/, '') : '';
+
         $('#dataModal3').modal('show');
 
         $('#btnYes').off('click').on('click', function () {
@@ -498,10 +515,66 @@ $(document).ready(function () {
 
                     if (campoAdjunto !== '') {
                         $('#' + campoAdjunto).val('');
+						             $('[name="' + campoAdjunto + '"]').val('');
+
+
+
+                   $('[name="' + campoAdjunto + '"]').val('');
+
+
+
+                        if (campoAdjunto === 'ADJUNTAR_FACTURA_XML') {
+
+                            var camposAutomaticosXml = [
+
+                                'NOMBRE_COMERCIAL', 'RAZON_SOCIAL', 'RFC_PROVEEDOR', 'CONCEPTO_PROVEE',
+
+                                'MONTO_FACTURA', 'IVA', 'TImpuestosRetenidosIVA', 'TImpuestosRetenidosISR',
+
+                                'descuentos', 'MONTO_DEPOSITAR', 'TIPO_DE_MONEDA', 'PFORMADE_PAGO',
+
+                                'FECHA_DE_PAGO', 'NUMERO_CONSECUTIVO_PROVEE'
+
+                            ];
+
+
+
+                            camposAutomaticosXml.forEach(function (campoXml) {
+
+                                $('#' + campoXml).val('').trigger('change');
+
+                                $('[name="' + campoXml + '"]').val('').trigger('change');
+
+                            });
+
+
+
+         $('#ADJUNTAR_FACTURA_XML, [name="ADJUNTAR_FACTURA_XML"]').val('');
+
+                            $('#1ADJUNTAR_FACTURA_XML').empty();
+
+                            $('#2ADJUNTAR_FACTURA_XML').empty();
+
+                            $('#3ADJUNTAR_FACTURA_XML').empty();
+
+                            $('#reseteaxml').remove();
+
+                            $('#respuestaser').empty();
+
+                            $('#resettabla').empty();
+
+                            recargarElemento('#resettabla');
+
+
+                        }
+
+
                     }
 
                     recargarElemento('#' + borra_id_sb);
                     recargarElemento('#A' + borra_id_sb);
+                  
+					
                 }
             });
         });
